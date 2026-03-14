@@ -55,6 +55,12 @@ services:
       - "8001:8000"
     volumes:
       - upload_data:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +80,12 @@ services:
       - .env
     volumes:
       - upload_data:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping --timeout 5 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,6 +104,12 @@ services:
       - "3001:3000"
     environment:
       - NEXT_PUBLIC_API_URL=/api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:3000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - cosmin-net
 
@@ -101,6 +119,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8089:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     depends_on:
       - backend
       - frontend
