@@ -135,13 +135,38 @@ class AnalysisPipeline:
         }
 
     def _get_or_create_assessment(self) -> PaperAssessment:
-        """Get existing or create new assessment for this paper."""
+        """Get existing or create new assessment for this paper.
+
+        On re-analysis, deletes all old ratings, evidence, and box scores
+        so the pipeline starts fresh.
+        """
         assessment = (
             self.session.query(PaperAssessment)
             .filter(PaperAssessment.paper_id == self.paper_id)
             .first()
         )
-        if not assessment:
+        if assessment:
+            # Clear old data — cascade handles RatingEvidence via StandardRating
+            self.session.query(BoxRating).filter(
+                BoxRating.assessment_id == assessment.id
+            ).delete()
+            self.session.query(RatingEvidence).filter(
+                RatingEvidence.rating_id.in_(
+                    self.session.query(StandardRating.id).filter(
+                        StandardRating.assessment_id == assessment.id
+                    )
+                )
+            ).delete(synchronize_session="fetch")
+            self.session.query(StandardRating).filter(
+                StandardRating.assessment_id == assessment.id
+            ).delete()
+            assessment.status = "pending"
+            assessment.relevant_boxes = None
+            assessment.ai_started_at = None
+            assessment.ai_completed_at = None
+            self.session.flush()
+            logger.info(f"Cleared old assessment data for paper {self.paper_id}")
+        else:
             assessment = PaperAssessment(paper_id=self.paper_id, status="pending")
             self.session.add(assessment)
             self.session.flush()
@@ -281,6 +306,10 @@ class AnalysisPipeline:
                 existing.ai_confidence = r.get("confidence")
                 existing.ai_reasoning = r.get("reasoning")
                 rating_obj = existing
+                # Clear old evidence before adding fresh ones
+                self.session.query(RatingEvidence).filter(
+                    RatingEvidence.rating_id == existing.id
+                ).delete()
             else:
                 rating_obj = StandardRating(
                     assessment_id=assessment.id,
