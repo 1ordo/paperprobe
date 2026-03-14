@@ -10,13 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies from pyproject.toml
+# Install dependencies (cached Docker layer)
 COPY pyproject.toml .
 COPY app/__init__.py app/__init__.py
 RUN pip install --no-cache-dir .
 
-# Copy the rest of the code
+# Copy full source code
 COPY . .
+
+# Reinstall package with full source (fast — deps already cached)
+RUN pip install --no-cache-dir --no-deps .
 
 RUN mkdir -p /app/uploads
 
