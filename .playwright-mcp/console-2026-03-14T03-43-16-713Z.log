@@ -1,0 +1,103 @@
+[     517ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[     518ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[     520ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[     523ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[     528ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8080/favicon.ico:0
+[    6148ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[    6148ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[    6148ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[    6148ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[  214543ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[  214543ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:8080/api/projects:0
+[  214543ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[  214543ms] [ERROR] Failed to load projects: Error: API error 502: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.29.6</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+    at fetchAPI (webpack-internal:///(app-pages-browser)/./src/lib/api.ts:37:15)
+    at async loadProjects (webpack-internal:///(app-pages-browser)/./src/app/page.tsx:34:26) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32

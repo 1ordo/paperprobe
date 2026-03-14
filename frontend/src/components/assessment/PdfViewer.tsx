@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getPaperSections } from "@/lib/api";
+import { getPaperSections, getToken } from "@/lib/api";
 import {
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, FileX,
   FileText, Eye,
@@ -34,7 +34,11 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText }: PdfV
         pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "/api";
         const url = `${apiBase}/papers/${paperId}/file`;
-        const doc = await pdfjsLib.getDocument(url).promise;
+        const token = getToken();
+        const doc = await pdfjsLib.getDocument({
+          url,
+          httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }).promise;
         setPdfDoc(doc);
         setNumPages(doc.numPages);
       } catch (e) {

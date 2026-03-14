@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     ai_model_fast: str = "openai/gpt-oss-120b"
     ai_model_embedding: str = "text-embedding-nomic-embed-text-v1.5"
 
+    # Auth
+    auth_email: str = "admin@cosmin.local"
+    auth_password: str = "changeme"
+    auth_secret: str = "change-this-secret-key-in-production"
+
     # Upload
     upload_dir: str = "/app/uploads"
     max_upload_size_mb: int = 100
