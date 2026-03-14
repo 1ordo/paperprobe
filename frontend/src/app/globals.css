@@ -60,14 +60,26 @@ input:focus, textarea:focus, select:focus {
 
 /* Evidence highlight applied to text layer spans */
 .textLayer .evidence-highlight {
-  background: rgba(255, 192, 0, 0.4) !important;
+  background: rgba(255, 192, 0, 0.45) !important;
   border-radius: 2px;
   padding: 1px 0;
+  transition: background 0.3s ease;
 }
 
 /* PDF page wrapper */
 .pdf-page-wrapper {
   position: relative;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Pulse effect on targeted page */
+.pdf-page-wrapper.evidence-target {
+  box-shadow: 0 0 0 3px rgba(255, 192, 0, 0.6), 0 0 20px rgba(255, 192, 0, 0.2);
+  animation: page-pulse 2s ease-out forwards;
+}
+@keyframes page-pulse {
+  0% { box-shadow: 0 0 0 3px rgba(255, 192, 0, 0.6), 0 0 20px rgba(255, 192, 0, 0.2); }
+  100% { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.3); }
 }
 
 /* Subtle noise texture overlay */

@@ -138,13 +138,19 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
 
   // Scroll to target page when evidence is clicked
   useEffect(() => {
-    if (targetPage && targetPage >= 1 && targetPage <= numPages) {
+    // Remove previous target highlight
+    for (const [, el] of pageRefs.current) {
+      el?.classList.remove("evidence-target");
+    }
+
+    if (targetPage && targetPage >= 1 && targetPage <= numPages && pagesReady) {
       const wrapper = pageRefs.current.get(targetPage);
       if (wrapper && containerRef.current) {
         wrapper.scrollIntoView({ behavior: "smooth", block: "start" });
+        wrapper.classList.add("evidence-target");
       }
     }
-  }, [targetPage, highlightKey, numPages]);
+  }, [targetPage, highlightKey, numPages, pagesReady]);
 
   // Highlight evidence text in text layers
   useEffect(() => {
@@ -158,10 +164,26 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
 
     if (!highlightText || highlightText.length < 8 || !pagesReady) return;
 
-    // Normalize the search text: collapse whitespace, lowercase
-    const searchNorm = highlightText.replace(/\s+/g, " ").trim().toLowerCase();
-    // Use a shorter snippet for matching (first 100 chars)
-    const snippet = searchNorm.slice(0, 100);
+    // Normalize helper: collapse whitespace, strip punctuation variations, lowercase
+    function normalize(s: string) {
+      return s
+        .replace(/[\u2018\u2019\u201C\u201D]/g, "'")  // curly quotes → straight
+        .replace(/[\u2013\u2014]/g, "-")               // em/en dash → hyphen
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    // Extract significant words (3+ chars) for word-level fallback matching
+    function extractWords(s: string): string[] {
+      return normalize(s)
+        .split(/\s+/)
+        .filter((w) => w.length >= 3)
+        .map((w) => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "")) // strip surrounding punctuation
+        .filter((w) => w.length >= 3);
+    }
+
+    const searchNorm = normalize(highlightText);
 
     // Determine which pages to search first
     const pagePriority: number[] = [];
@@ -181,7 +203,7 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
       const spans = Array.from(textDiv.querySelectorAll("span"));
       if (spans.length === 0) continue;
 
-      // Build a concatenated string from all spans with their positions tracked
+      // Build concatenated text with span position tracking
       const entries: { span: Element; text: string; start: number }[] = [];
       let accumulated = "";
       for (const span of spans) {
@@ -191,42 +213,96 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
         entries.push({ span, text: raw, start });
       }
 
-      const fullLower = accumulated.replace(/\s+/g, " ").toLowerCase();
+      const fullNorm = normalize(accumulated);
 
-      // Try progressively shorter snippets for fuzzy matching
+      // --- Strategy 1: Substring match with progressively shorter snippets ---
       let matchIdx = -1;
       let matchLen = 0;
-      for (let tryLen = snippet.length; tryLen >= 20; tryLen -= 10) {
-        const trySnippet = snippet.slice(0, tryLen);
-        matchIdx = fullLower.indexOf(trySnippet);
+      const maxSnippet = Math.min(searchNorm.length, 120);
+      for (let tryLen = maxSnippet; tryLen >= 15; tryLen -= 5) {
+        const trySnippet = searchNorm.slice(0, tryLen);
+        matchIdx = fullNorm.indexOf(trySnippet);
         if (matchIdx !== -1) {
           matchLen = trySnippet.length;
           break;
         }
       }
-      if (matchIdx === -1) continue;
 
-      // Map match region back to spans
-      // We need to map from normalized positions back to raw positions
-      // Since we collapse whitespace in fullLower, we need to track offsets
-      // Simpler approach: just highlight spans whose raw text overlaps the match
-      let rawPos = 0;
+      // --- Strategy 2: Word-sequence matching (handles text extraction differences) ---
+      if (matchIdx === -1) {
+        const searchWords = extractWords(highlightText);
+        if (searchWords.length >= 3) {
+          // Try to find a consecutive sequence of words from the evidence in the page
+          const pageWords = extractWords(accumulated);
+          // Use first 8 significant words to find the region
+          const needle = searchWords.slice(0, Math.min(8, searchWords.length));
+
+          // Sliding window: find best match position
+          let bestScore = 0;
+          let bestStart = -1;
+          let bestEnd = -1;
+
+          for (let i = 0; i <= pageWords.length - needle.length; i++) {
+            let score = 0;
+            for (let j = 0; j < needle.length; j++) {
+              if (pageWords[i + j] === needle[j]) score++;
+              else if (pageWords[i + j]?.includes(needle[j]) || needle[j]?.includes(pageWords[i + j])) score += 0.5;
+            }
+            if (score > bestScore && score >= needle.length * 0.6) {
+              bestScore = score;
+              bestStart = i;
+              bestEnd = i + needle.length;
+            }
+          }
+
+          if (bestStart !== -1) {
+            // Map matched word positions back to spans
+            // Find these words in the accumulated text and highlight containing spans
+            const matchedWords = new Set(pageWords.slice(bestStart, bestEnd));
+            let firstHighlighted: Element | null = null;
+
+            for (const entry of entries) {
+              const spanNorm = normalize(entry.text);
+              const spanWords = spanNorm.split(/\s+/).filter((w) => w.length >= 3);
+              const hasMatch = spanWords.some((w) => {
+                const cleaned = w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
+                return matchedWords.has(cleaned);
+              });
+              if (hasMatch) {
+                entry.span.classList.add("evidence-highlight");
+                if (!firstHighlighted) firstHighlighted = entry.span;
+              }
+            }
+
+            if (firstHighlighted) {
+              firstHighlighted.scrollIntoView({ behavior: "smooth", block: "center" });
+              return;
+            }
+          }
+        }
+        continue; // No match on this page
+      }
+
+      // --- Map substring match region back to spans ---
+      // Build raw→normalized position mapping
       let normPos = 0;
       const rawToNorm: number[] = [];
+      let prevWasSpace = false;
       for (const ch of accumulated) {
-        if (/\s/.test(ch)) {
-          // In normalized: only count if previous wasn't also whitespace
-          if (normPos === 0 || fullLower[normPos - 1] !== " ") {
+        const isSpace = /\s/.test(ch);
+        if (isSpace) {
+          if (!prevWasSpace) {
             rawToNorm.push(normPos);
             normPos++;
           } else {
             rawToNorm.push(normPos);
           }
+          prevWasSpace = true;
         } else {
           rawToNorm.push(normPos);
           normPos++;
+          prevWasSpace = false;
         }
-        rawPos++;
       }
 
       const matchEnd = matchIdx + matchLen;
@@ -235,7 +311,6 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
       for (const entry of entries) {
         const spanStart = entry.start;
         const spanEnd = spanStart + entry.text.length;
-        // Check if any char in this span maps to the match region
         let overlaps = false;
         for (let i = spanStart; i < spanEnd && i < rawToNorm.length; i++) {
           if (rawToNorm[i] >= matchIdx && rawToNorm[i] < matchEnd) {
@@ -251,7 +326,7 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
 
       if (firstHighlighted) {
         firstHighlighted.scrollIntoView({ behavior: "smooth", block: "center" });
-        return; // Found match, stop searching
+        return;
       }
     }
   }, [highlightText, highlightKey, targetPage, numPages, pagesReady]);
