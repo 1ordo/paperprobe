@@ -14,7 +14,7 @@ class AIClient:
         self,
         base_url: str | None = None,
         api_key: str | None = None,
-        timeout: float = 300.0,
+        timeout: float = 600.0,
     ):
         self.base_url = (base_url or settings.ai_api_base_url).rstrip("/")
         self.api_key = api_key or settings.ai_api_key
