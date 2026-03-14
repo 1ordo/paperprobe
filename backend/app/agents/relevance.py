@@ -16,7 +16,36 @@ You are a COSMIN Risk of Bias assessment specialist. Your task is to determine w
 COSMIN checklist boxes are relevant to a given research paper about an outcome \
 measurement instrument (PROM, ClinROM, PerFOM, or laboratory value).
 
-The 10 COSMIN boxes correspond to measurement properties:
+## CRITICAL DISTINCTION RULES
+
+### Box 8 vs Box 9 — This is the most common source of error
+
+**Box 8 (Criterion validity)** applies when:
+- The study compares an instrument against a GOLD STANDARD or reference standard
+- The study calculates sensitivity, specificity, AUC, ROC curves
+- The study evaluates diagnostic accuracy (e.g., screening tool vs. full diagnostic assessment)
+- Example: Comparing a brief screening test (MoCA) against a comprehensive neuropsychological battery
+- Example: Comparing a questionnaire against a clinical diagnosis
+
+**Box 9 (Hypotheses testing for construct validity)** applies when:
+- The study tests PRE-SPECIFIED HYPOTHESES about relationships between the instrument \
+and OTHER measurement instruments (convergent/discriminant validity)
+- The study compares scores between KNOWN GROUPS expected to differ
+- The study explicitly states hypotheses about expected direction and/or magnitude of correlations
+- The comparisons are about CONSTRUCT VALIDITY, not diagnostic accuracy
+- Example: "We hypothesized that our pain scale would correlate positively (r>0.5) with the VAS"
+- Example: "We expected higher scores in patients with severe disease vs. mild disease"
+
+KEY DIFFERENCE: If the study treats one instrument as the "truth" or "gold standard" and \
+evaluates how well another instrument detects the same thing → Box 8 (Criterion validity). \
+If the study compares instruments to understand WHAT the instrument measures (its construct) \
+via hypothesized relationships → Box 9 (Hypotheses testing).
+
+DO NOT mark Box 9 just because a study compares scores with other instruments. \
+That alone is NOT hypotheses testing unless there are explicit a priori hypotheses about \
+expected correlations or group differences for construct validation purposes.
+
+## The 10 COSMIN boxes
 
 1. **PROM development** — Did the study develop a NEW Patient-Reported Outcome Measure? \
 Look for: concept elicitation (interviews, focus groups), item generation, pilot testing, \
@@ -27,11 +56,12 @@ Look for: patient/professional assessment of relevance, comprehensiveness, compr
 Only relevant for studies that explicitly evaluate content validity.
 
 3. **Structural validity** — Did the study evaluate structural validity? \
-Look for: factor analysis (CFA, EFA), IRT analysis, Rasch analysis, dimensionality assessment.
+Look for: factor analysis (CFA, EFA), IRT analysis, Rasch analysis, dimensionality assessment. \
+Only relevant for multi-item instruments based on a reflective model.
 
 4. **Internal consistency** — Did the study evaluate internal consistency? \
-Look for: Cronbach's alpha, omega, KR-20. Note: internal consistency is only relevant \
-for multi-item instruments based on a reflective model.
+Look for: Cronbach's alpha, omega, KR-20. Only relevant for multi-item instruments \
+based on a reflective model. Must have evidence of unidimensionality/structural validity.
 
 5. **Cross-cultural validity / Measurement invariance** — Did the study evaluate \
 cross-cultural validity or measurement invariance? \
@@ -46,21 +76,27 @@ Look for: SEM, SDC, LoA (Limits of Agreement), coefficient of variation. \
 Note: measurement error is often reported alongside reliability (Box 6).
 
 8. **Criterion validity** — Did the study evaluate criterion validity against a gold standard? \
-Look for: comparison to a gold standard, AUC, sensitivity, specificity. \
-Only relevant when a recognized gold standard exists for the construct.
+Look for: comparison to a gold standard or reference standard, AUC, sensitivity, specificity, \
+diagnostic accuracy, screening performance. Only relevant when a recognized gold standard \
+or reference standard exists for the construct.
 
-9. **Hypotheses testing for construct validity** — Did the study test hypotheses about \
-relationships with other instruments or differences between known groups? \
-Look for: correlations with other instruments, known-groups comparisons, convergent/discriminant validity. \
-Sub-box 9a = comparison with other outcome measurement instruments. \
-Sub-box 9b = comparison between subgroups.
+9. **Hypotheses testing for construct validity** — Did the study test EXPLICIT hypotheses \
+about relationships with other instruments or differences between known groups? \
+Sub-box 9a = comparison with other outcome measurement instruments (convergent validity). \
+Sub-box 9b = comparison between subgroups (known-groups validity). \
+REQUIRES explicit a priori hypotheses about expected direction/magnitude of correlations \
+or group differences. Simply reporting correlations with other instruments is NOT enough.
 
 10. **Responsiveness** — Did the study evaluate the instrument's ability to detect change over time? \
 Look for: before/after treatment comparisons, change scores, anchor-based methods, \
 AUC for responsiveness, correlations with change on anchor instruments.
 
-A paper may address MULTIPLE measurement properties. Be thorough — if the paper reports \
-ANY results for a measurement property, mark that box as relevant.
+## IMPORTANT RULES
+- A paper may address MULTIPLE measurement properties — be thorough.
+- But do NOT over-assign boxes. Only mark a box if the paper ACTUALLY evaluates that \
+measurement property with results. Mentioning a concept is not enough.
+- Pay special attention to Box 8 vs Box 9 distinction (see above).
+- Read the FULL paper carefully before deciding.
 
 Respond with a JSON object.
 """
@@ -110,8 +146,9 @@ class RelevanceClassifier(BaseAgent):
             Dict with relevant_boxes, reasoning, and study_type.
         """
         if document_text:
-            # Use first ~6000 chars of abstract + methods + results
-            context = document_text[:6000]
+            # Use full document text — the fast model has sufficient context window.
+            # Truncating caused missed context for Box 8 vs 9 distinction.
+            context = document_text[:120000]
         else:
             # Retrieve relevant chunks via semantic search
             queries = [
@@ -125,8 +162,8 @@ class RelevanceClassifier(BaseAgent):
                 "construct validity hypothesis convergent discriminant known-groups",
                 "sample size participants methods statistical analysis results",
             ]
-            chunks = await self.retrieve_multi_context(queries, limit_per_query=3)
-            context = self.format_context(chunks, max_chars=6000)
+            chunks = await self.retrieve_multi_context(queries, limit_per_query=5)
+            context = self.format_context(chunks, max_chars=40000)
 
         user_prompt = USER_PROMPT_TEMPLATE.format(context=context)
         result = await self.call_llm(SYSTEM_PROMPT, user_prompt, json_mode=True, temperature=0.0)

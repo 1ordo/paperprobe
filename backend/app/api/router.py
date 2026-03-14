@@ -7,6 +7,7 @@ from app.api.cosmin_checklist import router as cosmin_router
 from app.api.assessments import router as assessments_router
 from app.api.analysis import router as analysis_router
 from app.api.export import router as export_router
+from app.api.assistant import router as assistant_router
 
 api_router = APIRouter()
 
@@ -20,3 +21,4 @@ api_router.include_router(cosmin_router, prefix="/cosmin", tags=["cosmin"], depe
 api_router.include_router(assessments_router, prefix="/assessments", tags=["assessments"], dependencies=[Depends(require_auth)])
 api_router.include_router(analysis_router, prefix="/analysis", tags=["analysis"], dependencies=[Depends(require_auth)])
 api_router.include_router(export_router, prefix="/export", tags=["export"], dependencies=[Depends(require_auth)])
+api_router.include_router(assistant_router, tags=["assistant"], dependencies=[Depends(require_auth)])

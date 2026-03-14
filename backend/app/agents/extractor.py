@@ -59,8 +59,15 @@ two-way random, two-way mixed for ICC; agreement vs. consistency)
 - Direct quotes with page numbers for every key finding
 - Prioritize methods section and results section quotes
 
-Be precise with numbers and statistical details. Quote directly from the paper. \
-If information is not found, explicitly state it is missing — do not fabricate data.
+Be precise with numbers and statistical details. If information is not found, \
+explicitly state it is missing — do not fabricate data.
+
+## EVIDENCE QUOTES — ABSOLUTE RULES
+1. Evidence quotes MUST be VERBATIM text copied exactly from the paper text provided.
+2. NEVER paraphrase, summarize, or generate text that is not in the paper.
+3. Page numbers MUST come from the [Page X] markers in the paper text.
+4. NEVER guess or fabricate page numbers. Only use page numbers you can see in the text.
+5. If no relevant verbatim quote exists, omit the quote — do not invent one.
 
 Respond with a JSON object.
 """
@@ -166,8 +173,8 @@ class EvidenceExtractor(BaseAgent):
             Structured evidence dict.
         """
         if document_text:
-            # Use full document text — 128k context can handle it
-            context = document_text[:80000]
+            # Use full document text — 128k context models can handle it
+            context = document_text[:120000]
         else:
             # Fallback to vector search
             queries = [
@@ -194,8 +201,8 @@ class EvidenceExtractor(BaseAgent):
 
             queries.append("results table statistics coefficients values confidence interval")
 
-            chunks = await self.retrieve_multi_context(queries, limit_per_query=4)
-            context = self.format_context(chunks, max_chars=40000)
+            chunks = await self.retrieve_multi_context(queries, limit_per_query=6)
+            context = self.format_context(chunks, max_chars=80000)
 
         boxes_str = ", ".join(f"Box {b}" for b in relevant_boxes)
         user_prompt = USER_PROMPT_TEMPLATE.format(

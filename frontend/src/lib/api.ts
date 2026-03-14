@@ -127,6 +127,16 @@ export const getPaperChunks = (paperId: string, page?: number) =>
 // COSMIN Checklist
 export const getCosminBoxes = () => fetchAPI<any[]>("/cosmin/boxes");
 
+// Assistant
+export const sendAssistantMessage = (
+  paperId: string,
+  messages: { role: string; content: string }[]
+) =>
+  fetchAPI<{ message: string; tool_calls_made: string[] }>("/assistant/chat", {
+    method: "POST",
+    body: JSON.stringify({ paper_id: paperId, messages }),
+  });
+
 // Export
 export function getExportUrl(paperId: string, format: "xlsx" | "csv" = "xlsx") {
   const token = getToken();

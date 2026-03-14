@@ -10,6 +10,7 @@ import type { Paper, Assessment, CosminBox } from "@/types";
 import { PdfViewer } from "@/components/assessment/PdfViewer";
 import { ChecklistPanel } from "@/components/assessment/ChecklistPanel";
 import { AnalysisProgress } from "@/components/assessment/AnalysisProgress";
+import { ChatWindow } from "@/components/assistant/ChatWindow";
 import {
   ArrowLeft, Play, Download, FileSpreadsheet,
   Loader2, RotateCcw,
@@ -197,6 +198,12 @@ export default function PaperPage() {
           )}
         </div>
       </div>
+
+      {/* AI Assistant */}
+      <ChatWindow
+        paperId={paperId}
+        paperTitle={paper.title || paper.filename}
+      />
     </div>
   );
 }

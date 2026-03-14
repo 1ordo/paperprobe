@@ -117,10 +117,24 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
   }, [pdfDoc, scale]);
 
   useEffect(() => {
-    if (pdfDoc && numPages > 0) {
+    if (pdfDoc && numPages > 0 && viewMode === "pdf") {
+      // Reset the rendering lock — DOM elements are fresh after re-mount
+      renderingRef.current = false;
       renderAllPages();
     }
-  }, [pdfDoc, numPages, scale, renderAllPages]);
+  }, [pdfDoc, numPages, scale, viewMode, renderAllPages]);
+
+  // Re-render canvases when tab becomes visible (browsers discard canvas on background)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && pdfDoc && numPages > 0) {
+        renderingRef.current = false; // reset lock
+        renderAllPages();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [pdfDoc, numPages, renderAllPages]);
 
   // Scroll to target page when evidence is clicked
   useEffect(() => {
@@ -241,6 +255,14 @@ export function PdfViewer({ paperId, fileType, targetPage, highlightText, highli
       }
     }
   }, [highlightText, highlightKey, targetPage, numPages, pagesReady]);
+
+  // Clear stale DOM refs when leaving PDF view so re-mount gets fresh ones
+  useEffect(() => {
+    if (viewMode === "text") {
+      pageRefs.current.clear();
+      textLayerDivs.current.clear();
+    }
+  }, [viewMode]);
 
   // Load sections when switching to text view
   useEffect(() => {

@@ -148,16 +148,28 @@ class AnalysisPipeline:
         return assessment
 
     def _get_document_text(self) -> str | None:
-        """Get concatenated document text from sections."""
+        """Get concatenated document text from sections with page markers.
+
+        Each section is prefixed with a [Page X] marker so that downstream
+        agents can attribute evidence quotes to the correct page number.
+        """
         sections = (
             self.session.query(DocumentSection)
             .filter(DocumentSection.paper_id == self.paper_id)
             .order_by(DocumentSection.position_order)
             .all()
         )
-        if sections:
-            return "\n\n".join(s.content for s in sections)
-        return None
+        if not sections:
+            return None
+
+        parts = []
+        for s in sections:
+            page = s.page_start
+            if page:
+                parts.append(f"[Page {page}]\n{s.content}")
+            else:
+                parts.append(s.content)
+        return "\n\n".join(parts)
 
     def _load_box_standards(self, box_numbers: list[int]) -> dict[int, tuple[str, list[dict]]]:
         """Load standards for the specified box numbers.
