@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { sendAssistantMessage } from "@/lib/api";
 import {
   MessageSquare, X, Send, Loader2, RotateCcw, Wrench,
@@ -22,8 +22,53 @@ function storageKey(paperId: string) {
   return `assistant_chat_${paperId}`;
 }
 
+function isTableSeparator(line: string) {
+  return /^\|[\s\-:|]+\|$/.test(line.trim());
+}
+
+function parseTableRow(line: string) {
+  return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+}
+
+function renderTable(lines: string[], keyPrefix: string) {
+  const headerCells = parseTableRow(lines[0]);
+  const bodyLines = lines.slice(2); // skip header + separator
+  return (
+    <div key={keyPrefix} className="overflow-x-auto my-2">
+      <table className="w-full text-[11px] border-collapse">
+        <thead>
+          <tr>
+            {headerCells.map((cell, ci) => (
+              <th
+                key={ci}
+                className="text-left px-2 py-1.5 border-b border-border font-semibold text-text-primary bg-surface-0/50"
+              >
+                {renderInline(cell)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyLines.map((row, ri) => {
+            const cells = parseTableRow(row);
+            return (
+              <tr key={ri} className={ri % 2 === 0 ? "" : "bg-surface-0/30"}>
+                {cells.map((cell, ci) => (
+                  <td key={ci} className="px-2 py-1.5 border-b border-border/50 text-text-secondary">
+                    {renderInline(cell)}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function MarkdownContent({ text }: { text: string }) {
-  // Minimal markdown rendering: bold, inline code, code blocks, lists
+  // Minimal markdown rendering: bold, inline code, code blocks, lists, tables
   const parts = text.split(/(```[\s\S]*?```)/g);
   return (
     <>
@@ -36,25 +81,50 @@ function MarkdownContent({ text }: { text: string }) {
             </pre>
           );
         }
-        // Process inline formatting
+        // Process lines, collecting table blocks
         const lines = part.split("\n");
-        return lines.map((line, j) => {
+        const elements: React.ReactNode[] = [];
+        let lineIdx = 0;
+
+        while (lineIdx < lines.length) {
+          const line = lines[lineIdx];
+
+          // Detect table: current line starts with |, next line is separator
+          if (
+            line.trim().startsWith("|") &&
+            lineIdx + 1 < lines.length &&
+            isTableSeparator(lines[lineIdx + 1])
+          ) {
+            // Collect header + separator + all body rows
+            const tableLines: string[] = [line, lines[lineIdx + 1]];
+            lineIdx += 2;
+            while (lineIdx < lines.length && lines[lineIdx].trim().startsWith("|") && !isTableSeparator(lines[lineIdx])) {
+              tableLines.push(lines[lineIdx]);
+              lineIdx++;
+            }
+            elements.push(renderTable(tableLines, `${i}-tbl-${lineIdx}`));
+            continue;
+          }
+
+          const j = lineIdx;
+          lineIdx++;
+
           // Headings
-          if (line.startsWith("### "))
-            return <div key={`${i}-${j}`} className="font-semibold text-text-primary mt-2 mb-1">{line.slice(4)}</div>;
-          if (line.startsWith("## "))
-            return <div key={`${i}-${j}`} className="font-semibold text-text-primary mt-2 mb-1">{line.slice(3)}</div>;
-          // List items
-          if (line.match(/^[-*] /))
-            return <div key={`${i}-${j}`} className="pl-3 before:content-['•'] before:mr-1.5 before:text-accent">{renderInline(line.slice(2))}</div>;
-          // Numbered lists
-          if (line.match(/^\d+\. /))
-            return <div key={`${i}-${j}`} className="pl-3">{renderInline(line)}</div>;
-          // Empty lines
-          if (!line.trim()) return <div key={`${i}-${j}`} className="h-2" />;
-          // Regular text
-          return <div key={`${i}-${j}`}>{renderInline(line)}</div>;
-        });
+          if (line.startsWith("### ")) {
+            elements.push(<div key={`${i}-${j}`} className="font-semibold text-text-primary mt-2 mb-1">{line.slice(4)}</div>);
+          } else if (line.startsWith("## ")) {
+            elements.push(<div key={`${i}-${j}`} className="font-semibold text-text-primary mt-2 mb-1">{line.slice(3)}</div>);
+          } else if (line.match(/^[-*] /)) {
+            elements.push(<div key={`${i}-${j}`} className="pl-3 before:content-['•'] before:mr-1.5 before:text-accent">{renderInline(line.slice(2))}</div>);
+          } else if (line.match(/^\d+\. /)) {
+            elements.push(<div key={`${i}-${j}`} className="pl-3">{renderInline(line)}</div>);
+          } else if (!line.trim()) {
+            elements.push(<div key={`${i}-${j}`} className="h-2" />);
+          } else {
+            elements.push(<div key={`${i}-${j}`}>{renderInline(line)}</div>);
+          }
+        }
+        return <React.Fragment key={i}>{elements}</React.Fragment>;
       })}
     </>
   );
