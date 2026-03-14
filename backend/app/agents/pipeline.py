@@ -332,10 +332,16 @@ class AnalysisPipeline:
                 self.session.add(evidence)
 
     def _store_box_scores(self, assessment: PaperAssessment, all_ratings: dict, synthesis: dict):
-        """Store box-level worst scores."""
+        """Store box-level worst scores only for boxes that were actually rated."""
+        # Only store scores for boxes that were actually in all_ratings (i.e. relevant)
+        rated_boxes = set(int(k) for k in all_ratings.keys())
         computed = synthesis.get("computed_worst_scores", {})
         for box_num, worst_score in computed.items():
             box_num_int = int(box_num) if isinstance(box_num, str) else box_num
+
+            if box_num_int not in rated_boxes:
+                logger.warning(f"Synthesis hallucinated score for Box {box_num_int} — skipping (not in relevant boxes)")
+                continue
 
             # Find the box ID
             box = (
