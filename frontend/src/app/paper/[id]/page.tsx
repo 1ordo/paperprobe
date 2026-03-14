@@ -25,6 +25,7 @@ export default function PaperPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [highlightPage, setHighlightPage] = useState<number | null>(null);
   const [highlightText, setHighlightText] = useState<string | null>(null);
+  const [highlightKey, setHighlightKey] = useState(0);
 
   const loadData = useCallback(async () => {
     try {
@@ -72,6 +73,7 @@ export default function PaperPage() {
   function handleEvidenceClick(pageNumber: number | null, text: string) {
     if (pageNumber) setHighlightPage(pageNumber);
     setHighlightText(text);
+    setHighlightKey((k) => k + 1); // force re-trigger even if same evidence clicked twice
   }
 
   if (loading) {
@@ -175,6 +177,7 @@ export default function PaperPage() {
             fileType={paper.file_type}
             targetPage={highlightPage}
             highlightText={highlightText}
+            highlightKey={highlightKey}
           />
         </div>
         <div className="w-1/2 overflow-auto bg-surface-1">

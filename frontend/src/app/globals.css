@@ -47,6 +47,29 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 0 0 2px #4f8fff40;
 }
 
+/* PDF.js official text layer */
+@import "pdfjs-dist/web/pdf_viewer.css";
+
+/* Override pdf.js text selection color for dark mode */
+.textLayer ::-moz-selection {
+  background: rgba(79, 143, 255, 0.35);
+}
+.textLayer ::selection {
+  background: rgba(79, 143, 255, 0.35);
+}
+
+/* Evidence highlight applied to text layer spans */
+.textLayer .evidence-highlight {
+  background: rgba(255, 192, 0, 0.4) !important;
+  border-radius: 2px;
+  padding: 1px 0;
+}
+
+/* PDF page wrapper */
+.pdf-page-wrapper {
+  position: relative;
+}
+
 /* Subtle noise texture overlay */
 .noise-bg {
   position: relative;
